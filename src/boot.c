@@ -25,6 +25,9 @@
  * Boot priority ordering
  ****************************************************************/
 
+static const char *no_boot_dev_str = "No bootable device.";
+static const char *boot_str = "Booting from ";
+static const char *boot_fail_str = "Boot failed: ";
 static char **Bootorder VARVERIFY32INIT;
 static int BootorderCount;
 
@@ -581,7 +584,7 @@ bcv_prepboot(void)
 static void
 call_boot_entry(struct segoff_s bootsegip, u8 bootdrv)
 {
-    dprintf(1, "Booting from %04x:%04x\n", bootsegip.seg, bootsegip.offset);
+    dprintf(1, "%s%04x:%04x\n", boot_str, bootsegip.seg, bootsegip.offset);
     struct bregs br;
     memset(&br, 0, sizeof(br));
     br.flags = F_IF;
@@ -610,14 +613,14 @@ boot_disk(u8 bootdrv, int checksig)
     call16_int(0x13, &br);
 
     if (br.flags & F_CF) {
-        printf("Boot failed: could not read the boot disk\n\n");
+        printf("%scould not read the boot disk\n\n", boot_fail_str);
         return;
     }
 
     if (checksig) {
         struct mbr_s *mbr = (void*)0;
         if (GET_FARVAR(bootseg, mbr->signature) != MBR_SIGNATURE) {
-            printf("Boot failed: not a bootable disk\n\n");
+            printf("%snot a bootable disk\n\n", boot_fail_str);
             return;
         }
     }
@@ -635,11 +638,11 @@ boot_cdrom(struct drive_s *drive_g)
 {
     if (! CONFIG_CDROM_BOOT)
         return;
-    printf("Booting from DVD/CD...\n");
+    printf("%sDVD/CD...\n", boot_str);
 
     int status = cdrom_boot(drive_g);
     if (status) {
-        printf("Boot failed: Could not read from CDROM (code %04x)\n", status);
+        printf("%sCould not read from CDROM (code %04x)\n", boot_fail_str, status);
         return;
     }
 
@@ -658,7 +661,7 @@ boot_cbfs(struct cbfs_file *file)
 {
     if (!CONFIG_COREBOOT_FLASH)
         return;
-    printf("Booting from CBFS...\n");
+    printf("%sCBFS...\n", boot_str);
     cbfs_run_payload(file);
 }
 
@@ -666,7 +669,7 @@ boot_cbfs(struct cbfs_file *file)
 static void
 boot_rom(u32 vector)
 {
-    printf("Booting from ROM...\n");
+    printf("%sROM...\n", boot_str);
     struct segoff_s so;
     so.segoff = vector;
     call_boot_entry(so, 0);
@@ -677,10 +680,10 @@ static void
 boot_fail(void)
 {
     if (BootRetryTime == (u32)-1)
-        printf("No bootable device.\n");
+        printf("%s\n", no_boot_dev_str);
     else
-        printf("No bootable device.  Retrying in %d seconds.\n"
-               , BootRetryTime/1000);
+        printf("%s  Retrying in %d seconds.\n", no_boot_dev_str,
+               BootRetryTime/1000);
     // Wait for 'BootRetryTime' milliseconds and then reboot.
     u32 end = irqtimer_calc(BootRetryTime);
     for (;;) {
@@ -706,11 +709,11 @@ do_boot(int seq_nr)
     struct bev_s *ie = &BEV[seq_nr];
     switch (ie->type) {
     case IPL_TYPE_FLOPPY:
-        printf("Booting from Floppy...\n");
+        printf("%sFloppy...\n", boot_str);
         boot_disk(0x00, CheckFloppySig);
         break;
     case IPL_TYPE_HARDDISK:
-        printf("Booting from Hard Disk...\n");
+        printf("%sHard Disk...\n", boot_str);
         boot_disk(0x80, 1);
         break;
     case IPL_TYPE_CDROM:

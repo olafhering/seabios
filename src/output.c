@@ -17,6 +17,7 @@
 #include "string.h" // memset
 #include "util.h" // ScreenAndDebug
 
+static const char *WARNING = "WARNING - ";
 struct putcinfo {
     void (*func)(struct putcinfo *info, char c);
 };
@@ -505,15 +506,18 @@ __warn_unimplemented(struct bregs *regs, int lineno, const char *fname)
 void
 __warn_internalerror(int lineno, const char *fname)
 {
-    dprintf(1, "WARNING - internal error detected at %s:%d!\n"
+    dprintf(1, "%sinternal error detected at %s:%d!\n"
+            , WARNING
             , fname, lineno);
 }
 
+static const char *Unable_allocate = "Unable to allocate resource at ";
 // Report on an allocation failure.
 void
 __warn_noalloc(int lineno, const char *fname)
 {
-    dprintf(1, "WARNING - Unable to allocate resource at %s:%d!\n"
+    dprintf(1, "%s%s%s:%d!\n"
+            , WARNING, Unable_allocate
             , fname, lineno);
 }
 
@@ -521,7 +525,7 @@ __warn_noalloc(int lineno, const char *fname)
 void
 __warn_timeout(int lineno, const char *fname)
 {
-    dprintf(1, "WARNING - Timeout at %s:%d!\n", fname, lineno);
+    dprintf(1, "%sTimeout at %s:%d!\n", WARNING, fname, lineno);
 }
 
 // Report a handler reporting an invalid parameter to the caller.
