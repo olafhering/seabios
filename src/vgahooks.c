@@ -18,6 +18,7 @@
 #define VH_INTEL 2
 #define VH_SMI 3
 
+static const char *Warning = "Warning: ";
 int VGAHookHandlerType VARFSEG;
 
 static void
@@ -44,7 +45,7 @@ via_155f01(struct bregs *regs)
     regs->eax = 0x5f;
     regs->cl = 2; // panel type =  2 = 1024 * 768
     set_success(regs);
-    dprintf(1, "Warning: VGA panel type is hardcoded\n");
+    dprintf(1, "%sVGA panel type is hardcoded\n", Warning);
 }
 
 static void
@@ -55,7 +56,7 @@ via_155f02(struct bregs *regs)
     regs->cx = 0x401;  // PAL + crt only
     regs->dx = 0;  // TV Layout - default
     set_success(regs);
-    dprintf(1, "Warning: VGA TV/CRT output type is hardcoded\n");
+    dprintf(1, "%sVGA TV/CRT output type is hardcoded\n", Warning);
 }
 
 static void
@@ -165,7 +166,7 @@ via_setup(struct pci_device *pci)
         return;
     }
 
-    dprintf(1, "Warning: VGA memory size and speed is hardcoded\n");
+    dprintf(1, "%sVGA memory size and speed is hardcoded\n", Warning);
     ViaFBsize = 5; // 32M frame buffer
     ViaRamSpeed = 4; // MCLK = DDR266
 }
