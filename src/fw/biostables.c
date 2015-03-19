@@ -19,6 +19,7 @@
 #include "x86.h" // outb
 
 struct pir_header *PirAddr VARFSEG;
+static const char *Copying_f_t = "Copying ";
 
 void
 copy_pir(void *pos)
@@ -37,7 +38,7 @@ copy_pir(void *pos)
         warn_noalloc();
         return;
     }
-    dprintf(1, "Copying PIR from %p to %p\n", pos, newpos);
+    dprintf(1, "%sPIR %p > %p\n", Copying_f_t, pos, newpos);
     memcpy(newpos, pos, p->size);
     PirAddr = newpos;
 }
@@ -62,7 +63,7 @@ copy_mptable(void *pos)
         warn_noalloc();
         return;
     }
-    dprintf(1, "Copying MPTABLE from %p/%x to %p\n", pos, p->physaddr, newpos);
+    dprintf(1, "%sMPTABLE %p/%x > %p\n", Copying_f_t, pos, p->physaddr, newpos);
     memcpy(newpos, pos, length);
     newpos->physaddr = (u32)newpos + length;
     newpos->checksum -= checksum(newpos, sizeof(*newpos));
@@ -110,7 +111,7 @@ copy_acpi_rsdp(void *pos)
         warn_noalloc();
         return;
     }
-    dprintf(1, "Copying ACPI RSDP from %p to %p\n", pos, newpos);
+    dprintf(1, "%sACPI RSDP %p > %p\n", Copying_f_t, pos, newpos);
     memcpy(newpos, pos, length);
     RsdpAddr = newpos;
 }
@@ -284,7 +285,7 @@ copy_smbios(void *pos)
         warn_noalloc();
         return;
     }
-    dprintf(1, "Copying SMBIOS entry point from %p to %p\n", pos, newpos);
+    dprintf(1, "%sSMBIOS entry point %p > %p\n", Copying_f_t, pos, newpos);
     memcpy(newpos, pos, p->length);
     SMBiosAddr = newpos;
 }

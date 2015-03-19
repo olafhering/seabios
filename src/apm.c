@@ -98,6 +98,8 @@ apm_shutdown(void)
         hlt();
 }
 
+static const char *apm_standby = "APM standby request\n";
+static const char *apm_suspend = "APM suspend request\n";
 // APM Set Power State
 static void
 handle_155307(struct bregs *regs)
@@ -108,10 +110,10 @@ handle_155307(struct bregs *regs)
     }
     switch (regs->cx) {
     case 1:
-        dprintf(1, "APM standby request\n");
+        dprintf(1, "%s", apm_standby);
         break;
     case 2:
-        dprintf(1, "APM suspend request\n");
+        dprintf(1, "%s", apm_suspend);
         break;
     case 3:
         apm_shutdown();

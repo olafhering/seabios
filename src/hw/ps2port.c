@@ -153,6 +153,7 @@ i8042_reboot(void)
 #define PS2_RET_ACK             0xfa
 #define PS2_RET_NAK             0xfe
 
+static const char *discarding_ps2 = "Discarding ps2 data ";
 static int
 ps2_recvbyte(int aux, int needack, int timeout)
 {
@@ -175,7 +176,7 @@ ps2_recvbyte(int aux, int needack, int timeout)
             }
 
             // This data not part of command - just discard it.
-            dprintf(1, "Discarding ps2 data %02x (status=%02x)\n", data, status);
+            dprintf(1, "%s%02x (status=%02x)\n", discarding_ps2, data, status);
         }
 
         if (timer_check(end)) {
