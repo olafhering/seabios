@@ -27,6 +27,10 @@
 #define PCI_BRIDGE_MEM_MIN    (1<<21)  // 2M == hugepage size
 #define PCI_BRIDGE_IO_MIN      0x1000  // mandated by pci bridge spec
 
+static const char *pri_bus_str = "PCI: primary bus = ";
+static const char *sec_bus_str = "PCI: secondary bus = ";
+static const char *sub_bus_str = "PCI: subordinate bus = ";
+
 static const char *region_type_name[] = {
     [ PCI_REGION_TYPE_IO ]      = "io",
     [ PCI_REGION_TYPE_MEM ]     = "mem",
@@ -452,21 +456,20 @@ pci_bios_init_bus_rec(int bus, u8 *pci_bus)
 
         u8 pribus = pci_config_readb(bdf, PCI_PRIMARY_BUS);
         if (pribus != bus) {
-            dprintf(1, "PCI: primary bus = 0x%x -> 0x%x\n", pribus, bus);
+            dprintf(1, "%s0x%x -> 0x%x\n", pri_bus_str, pribus, bus);
             pci_config_writeb(bdf, PCI_PRIMARY_BUS, bus);
         } else {
-            dprintf(1, "PCI: primary bus = 0x%x\n", pribus);
+            dprintf(1, "%s0x%x\n", pri_bus_str, pribus);
         }
 
         u8 secbus = pci_config_readb(bdf, PCI_SECONDARY_BUS);
         (*pci_bus)++;
         if (*pci_bus != secbus) {
-            dprintf(1, "PCI: secondary bus = 0x%x -> 0x%x\n",
-                    secbus, *pci_bus);
+            dprintf(1, "%s0x%x -> 0x%x\n", sec_bus_str, secbus, *pci_bus);
             secbus = *pci_bus;
             pci_config_writeb(bdf, PCI_SECONDARY_BUS, secbus);
         } else {
-            dprintf(1, "PCI: secondary bus = 0x%x\n", secbus);
+            dprintf(1, "%s0x%x\n", sec_bus_str, secbus);
         }
 
         /* set to max for access to all subordinate buses.
@@ -477,11 +480,10 @@ pci_bios_init_bus_rec(int bus, u8 *pci_bus)
         pci_bios_init_bus_rec(secbus, pci_bus);
 
         if (subbus != *pci_bus) {
-            dprintf(1, "PCI: subordinate bus = 0x%x -> 0x%x\n",
-                    subbus, *pci_bus);
+            dprintf(1, "%s0x%x -> 0x%x\n", sub_bus_str, subbus, *pci_bus);
             subbus = *pci_bus;
         } else {
-            dprintf(1, "PCI: subordinate bus = 0x%x\n", subbus);
+            dprintf(1, "%s0x%x\n", sub_bus_str, subbus);
         }
         pci_config_writeb(bdf, PCI_SUBORDINATE_BUS, subbus);
     }
@@ -913,6 +915,7 @@ static void pci_bios_map_devices(struct pci_bus *busses)
  * Main setup code
  ****************************************************************/
 
+static const char *PCI_pass = "=== PCI new allocation pass ===";
 void
 pci_setup(void)
 {
@@ -933,7 +936,7 @@ pci_setup(void)
     pcimem_start = RamSize;
     pci_bios_init_platform();
 
-    dprintf(1, "=== PCI new allocation pass #1 ===\n");
+    dprintf(1, "%s\n", PCI_pass);
     struct pci_bus *busses = malloc_tmp(sizeof(*busses) * (MaxPCIBus + 1));
     if (!busses) {
         warn_noalloc();
@@ -943,7 +946,7 @@ pci_setup(void)
     if (pci_bios_check_devices(busses))
         return;
 
-    dprintf(1, "=== PCI new allocation pass #2 ===\n");
+    dprintf(1, "%s\n", PCI_pass);
     pci_bios_map_devices(busses);
 
     pci_bios_init_devices();
