@@ -399,6 +399,7 @@ uhci_realloc_pipe(struct usbdevice_s *usbdev, struct usb_pipe *upipe
     return &pipe->pipe;
 }
 
+static const char *Timeout_wait_pipe = "Timeout on wait_pipe ";
 static int
 wait_pipe(struct uhci_pipe *pipe, u32 end)
 {
@@ -410,7 +411,7 @@ wait_pipe(struct uhci_pipe *pipe, u32 end)
             warn_timeout();
             u16 iobase = GET_LOWFLAT(pipe->iobase);
             struct uhci_td *td = (void*)(el_link & ~UHCI_PTR_BITS);
-            dprintf(1, "Timeout on wait_pipe %p (td=%p s=%x c=%x/%x)\n"
+            dprintf(1, "%s%p (td=%p s=%x c=%x/%x)\n", Timeout_wait_pipe
                     , pipe, (void*)el_link, GET_LOWFLAT(td->status)
                     , inw(iobase + USBCMD)
                     , inw(iobase + USBSTS));

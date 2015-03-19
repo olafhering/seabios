@@ -50,6 +50,9 @@ struct csw_s {
     u8 bCSWStatus;
 } PACKED;
 
+static const char *cant_config_str = "Unable to configure USB MSC ";
+static const char *usb_transmission_fail = "USB transmission failed";
+
 static int
 usb_msc_send(struct usbdrive_s *udrive_gf, int dir, void *buf, u32 bytes)
 {
@@ -118,7 +121,7 @@ usb_process_op(struct disk_op_s *op)
 
 fail:
     // XXX - reset connection
-    dprintf(1, "USB transmission failed\n");
+    dprintf(1, "%s\n", usb_transmission_fail);
     return DISK_RET_EBADTRACK;
 }
 
@@ -160,7 +163,7 @@ usb_msc_lun_setup(struct usb_pipe *inpipe, struct usb_pipe *outpipe,
     int prio = bootprio_find_usb(usbdev, lun);
     int ret = scsi_drive_setup(&drive->drive, "USB MSC", prio);
     if (ret) {
-        dprintf(1, "Unable to configure USB MSC drive.\n");
+        dprintf(1, "%sdrive.\n", cant_config_str);
         free(drive);
         return -1;
     }
@@ -215,7 +218,7 @@ usb_msc_setup(struct usbdevice_s *usbdev)
 
     return 0;
 fail:
-    dprintf(1, "Unable to configure USB MSC device.\n");
+    dprintf(1, "%sdevice.\n", cant_config_str);
     usb_free_pipe(usbdev, inpipe);
     usb_free_pipe(usbdev, outpipe);
     return -1;
