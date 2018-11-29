@@ -11,7 +11,6 @@ elif [ -f .version ]; then
 else
     VERSION="?"
 fi
-VERSION="${VERSION}-`date +"%Y%m%d_%H%M%S"`-`hostname`"
 echo "Version: ${VERSION}"
 
 # Build header file
