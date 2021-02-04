@@ -51,6 +51,8 @@ SRC32SEG=string.c output.c pcibios.c apm.c stacks.c hw/pci.c hw/serialio.c
 DIRS=src src/hw src/fw vgasrc
 
 # Default compiler flags
+as-option=$(shell if test -z "`$(1) $(2) -c -o /dev/null -xc /dev/null 2>&1`" \
+    ; then echo "$(2)"; else echo "$(3)"; fi ;)
 cc-option=$(shell if test -z "`$(1) $(2) -S -o /dev/null -xc /dev/null 2>&1`" \
     ; then echo "$(2)"; else echo "$(3)"; fi ;)
 
@@ -73,6 +75,7 @@ COMMONCFLAGS += $(call cc-option,$(CC),-fstack-check=no,)
 COMMONCFLAGS += $(call cc-option,$(CC),-Wno-address-of-packed-member,)
 COMMONCFLAGS += $(call cc-option,$(CC),-fcf-protection=none,)
 COMMA := ,
+COMMONCFLAGS += $(call as-option,$(CC),-Wa$(COMMA)-mx86-used-note=no,)
 
 CFLAGS32FLAT := $(COMMONCFLAGS) -DMODE16=0 -DMODESEGMENT=0
 CFLAGSSEG := $(COMMONCFLAGS) -DMODESEGMENT=1 -fno-defer-pop \
