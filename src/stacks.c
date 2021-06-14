@@ -208,7 +208,7 @@ _farcall16(struct bregs *callregs, u16 callregseg)
         : "ebx", "ecx", "esi", "edi", "cc", "memory");
 }
 
-inline void
+void
 farcall16(struct bregs *callregs)
 {
     if (MODE16) {
@@ -219,7 +219,7 @@ farcall16(struct bregs *callregs)
     call16((u32)callregs - StackSeg * 16, StackSeg, _cfunc16__farcall16);
 }
 
-inline void
+void
 farcall16big(struct bregs *callregs)
 {
     extern void _cfunc16__farcall16(void);
@@ -227,7 +227,7 @@ farcall16big(struct bregs *callregs)
 }
 
 // Invoke a 16bit software interrupt.
-inline void
+void
 __call16_int(struct bregs *callregs, u16 offset)
 {
     if (MODESEGMENT)
