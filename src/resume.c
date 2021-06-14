@@ -24,6 +24,7 @@ handle_resume(void)
     ASSERT16();
     int status = rtc_read(CMOS_RESET_CODE);
     rtc_write(CMOS_RESET_CODE, 0);
+    if (0)
     dprintf(1, "In resume (status=%d)\n", status);
 
     dma_setup();
@@ -31,6 +32,7 @@ handle_resume(void)
     switch (status) {
     case 0x01 ... 0x04:
     case 0x06 ... 0x09:
+    if (0)
         panic("Unimplemented shutdown status: %02x\n", status);
 
     case 0x05:
