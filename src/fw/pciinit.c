@@ -764,6 +764,8 @@ static void pci_region_migrate_64bit_entries(struct pci_region *from,
             continue;
         if (entry->dev->class == PCI_CLASS_SERIAL_USB)
             continue;
+        if (entry->dev->class == PCI_CLASS_STORAGE_NVME)
+            continue;
         // Move from source list to destination list.
         hlist_del(&entry->node);
         hlist_add(&entry->node, last);
