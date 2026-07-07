@@ -3,11 +3,12 @@
 
 #include "types.h" // u64
 
-#define E820_RAM          1
-#define E820_RESERVED     2
-#define E820_ACPI         3
-#define E820_NVS          4
-#define E820_UNUSABLE     5
+#define E820_RAM            1
+#define E820_RESERVED       2
+#define E820_ACPI           3
+#define E820_NVS            4
+#define E820_UNUSABLE       5
+#define E820_SOFT_RESERVED  0xEFFFFFFF
 
 struct e820entry {
     u64 start;

@@ -768,6 +768,11 @@ static int qemu_early_e820(void)
             dprintf(1, "qemu/e820: addr 0x%016llx len 0x%016llx [reserved]\n",
                     table.address, table.length);
             break;
+        case E820_SOFT_RESERVED:
+            e820_add(table.address, table.length, table.type);
+            dprintf(1, "qemu/e820: addr 0x%016llx len 0x%016llx [soft-reserved]\n",
+                    table.address, table.length);
+            break;
         case E820_RAM:
             e820_add(table.address, table.length, table.type);
             dprintf(1, "qemu/e820: addr 0x%016llx len 0x%016llx [RAM]\n",
