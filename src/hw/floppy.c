@@ -475,7 +475,7 @@ floppy_has_changeline(u8 ftype)
 // just recalibrated, which leaves the head on cylinder 0 and need not step at
 // all, so step to cylinder 1 and look again.
 //
-// Report DISK_RET_EMEDIA only when the drive is known to be empty -- an older
+// Report a missing medium only when the drive is known to be empty -- an older
 // drive without a change line is reported as present, so this can only ever
 // fall back to the previous behaviour.
 static int
@@ -495,7 +495,7 @@ floppy_check_media(struct drive_s *drive_gf, u8 floppyid)
 
     if (inb(PORT_FD_DIR) & FLOPPY_DIR_DSKCHG) {
         dprintf(2, "Floppy_check_media %d: no medium\n", floppyid);
-        return DISK_RET_EMEDIA;
+        return DISK_RET_ETIMEOUT;
     }
 
     // A medium is present.  Put the head back on cylinder 0, where the caller
