@@ -27,6 +27,9 @@
 #define PORT_FD_DATA           0x03f5
 #define PORT_FD_DIR            0x03f7
 
+// Digital Input Register (read)
+#define FLOPPY_DIR_DSKCHG      0x80
+
 #define FLOPPY_SIZE_CODE 0x02 // 512 byte sectors
 #define FLOPPY_DATALEN 0xff   // Not used - because size code is 0x02
 #define FLOPPY_MOTOR_TICKS 37 // ~2 seconds
@@ -457,6 +460,49 @@ floppy_drive_readid(u8 floppyid, u8 data_rate, u8 head)
     return 0;
 }
 
+// Only the 1.2MB 5.25" drive and the 3.5" drives have a disk change line.  On
+// the older 5.25" types the pin is not driven and reads back as a permanent
+// "changed".
+static int
+floppy_has_changeline(u8 ftype)
+{
+    return ftype >= 2 && ftype <= 5;
+}
+
+// Determine whether a diskette is present, without waiting for a command to
+// time out.  The disk change line latches when the medium is removed and is
+// cleared only by a step pulse with a diskette in the drive.  The caller has
+// just recalibrated, which leaves the head on cylinder 0 and need not step at
+// all, so step to cylinder 1 and look again.
+//
+// Report DISK_RET_EMEDIA only when the drive is known to be empty -- an older
+// drive without a change line is reported as present, so this can only ever
+// fall back to the previous behaviour.
+static int
+floppy_check_media(struct drive_s *drive_gf, u8 floppyid)
+{
+    if (!floppy_has_changeline(GET_GLOBALFLAT(drive_gf->floppy_type)))
+        return DISK_RET_SUCCESS;
+
+    // The caller has just recalibrated this drive, so it is selected in the
+    // DOR and the DIR reflects its change line.
+    if (!(inb(PORT_FD_DIR) & FLOPPY_DIR_DSKCHG))
+        return DISK_RET_SUCCESS;
+
+    int ret = floppy_drive_seek(floppyid, 1);
+    if (ret)
+        return ret;
+
+    if (inb(PORT_FD_DIR) & FLOPPY_DIR_DSKCHG) {
+        dprintf(2, "Floppy_check_media %d: no medium\n", floppyid);
+        return DISK_RET_EMEDIA;
+    }
+
+    // A medium is present.  Put the head back on cylinder 0, where the caller
+    // left it, so that media sensing reads the track it always did.
+    return floppy_drive_seek(floppyid, 0);
+}
+
 static int
 floppy_media_sense(struct drive_s *drive_gf)
 {
@@ -510,6 +556,13 @@ floppy_prep(struct drive_s *drive_gf, u8 cylinder)
         !(GET_BDA(floppy_media_state[floppyid]) & FMS_MEDIA_DRIVE_ESTABLISHED)) {
         // Recalibrate drive.
         int ret = floppy_drive_recal(floppyid);
+        if (ret)
+            return ret;
+
+        // An empty drive gives no index pulses, so the READ ID that
+        // floppy_media_sense() issues would never complete and would wait out
+        // its timeout once per data rate.  Ask the disk change line instead.
+        ret = floppy_check_media(drive_gf, floppyid);
         if (ret)
             return ret;
 
