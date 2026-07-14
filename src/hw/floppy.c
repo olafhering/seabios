@@ -417,6 +417,21 @@ floppy_drive_recal(u8 floppyid)
 }
 
 static int
+floppy_drive_seek(u8 floppyid, u8 cylinder)
+{
+    dprintf(2, "Floppy_drive_seek %d to %d\n", floppyid, cylinder);
+    u8 param[2];
+    param[0] = floppyid;
+    param[1] = cylinder;
+    int ret = floppy_drive_pio(floppyid, FC_SEEK, param);
+    if (ret)
+        return ret;
+
+    SET_BDA(floppy_track[floppyid], cylinder);
+    return DISK_RET_SUCCESS;
+}
+
+static int
 floppy_drive_specify(void)
 {
     u8 param[2];
@@ -511,15 +526,10 @@ floppy_prep(struct drive_s *drive_gf, u8 cylinder)
     }
 
     // Seek to cylinder if needed.
-    u8 lastcyl = GET_BDA(floppy_track[floppyid]);
-    if (cylinder != lastcyl) {
-        u8 param[2];
-        param[0] = floppyid;
-        param[1] = cylinder;
-        int ret = floppy_drive_pio(floppyid, FC_SEEK, param);
+    if (cylinder != GET_BDA(floppy_track[floppyid])) {
+        int ret = floppy_drive_seek(floppyid, cylinder);
         if (ret)
             return ret;
-        SET_BDA(floppy_track[floppyid], cylinder);
     }
 
     return DISK_RET_SUCCESS;
