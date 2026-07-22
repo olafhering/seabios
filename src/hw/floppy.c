@@ -515,7 +515,7 @@ floppy_media_sense(struct drive_s *drive_gf)
         // Attempt media sense.
         for (stype=1; ; stype++) {
             if (stype >= ARRAY_SIZE(FloppyInfo))
-                return DISK_RET_EMEDIA;
+                return DISK_RET_EBADTRACK;
             if (stype==ftype
                 || (GET_GLOBAL(FloppyInfo[stype].floppy_size)
                     != GET_GLOBAL(FloppyInfo[ftype].floppy_size))

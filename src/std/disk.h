@@ -17,7 +17,6 @@
 #define DISK_RET_ELOCKED       0xb1
 #define DISK_RET_ENOTREMOVABLE 0xb2
 #define DISK_RET_ETOOMANYLOCKS 0xb4
-#define DISK_RET_EMEDIA        0xC0
 #define DISK_RET_ENOTREADY     0xAA
 
 
