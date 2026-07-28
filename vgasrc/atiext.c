@@ -339,6 +339,65 @@ static void ati_i2c_edid_rage128(void)
 }
 
 /****************************************************************
+ * Fake ati bios tables
+ ****************************************************************/
+
+// aty128fb and radeonfb try to gather informations from these tables,
+// so add some stuff here to make the drivers happy.  Specifically
+// radeonfb needs the pll information, otherwise it'll crash with a
+// division by zero ...
+struct ati_main_table_s {
+    u8 pad_0[48];
+    u16 pll_table;
+    u8 pad_50[30];
+    u16 connector_table;
+    u8 pad_82[94];
+} PACKED;
+
+struct ati_pll_table_s {
+    u8 pad_0[8];
+    u16 sclk;
+    u16 mclk;
+    u8 pad_12[2];
+    u16 ref_clk;
+    u16 ref_div;
+    u32 ppll_min;
+    u32 ppll_max;
+    u8 pad_26[38];
+} PACKED;
+
+struct ati_connector_table_s {
+    u8 num_chip;
+    u8 num_connector;
+    u16 flags;
+    u16 next;
+} PACKED;
+
+extern u16 _rom_header_ati_table_anchor;
+static struct ati_main_table_s ati_main_table VAR16 __aligned(16);
+static struct ati_pll_table_s ati_pll_table VAR16 __aligned(16) = {
+    .sclk = 23000,
+    .mclk = 23000,
+    .ref_clk = 2700,
+    .ref_div = 4,
+    .ppll_min = 12000,
+    .ppll_max = 35000,
+};
+static struct ati_connector_table_s ati_connector_table VAR16 __aligned(16) = {
+    .num_chip = 0x10,
+    .num_connector = 1,
+    .flags = 0x3000,
+};
+
+static void
+ati_table_setup(void)
+{
+    SET_VGA(ati_main_table.pll_table, (u32)&ati_pll_table);
+    SET_VGA(ati_main_table.connector_table, (u32)&ati_connector_table);
+    SET_VGA(_rom_header_ati_table_anchor, (u32)&ati_main_table);
+}
+
+/****************************************************************
  * init
  ****************************************************************/
 
@@ -378,6 +437,8 @@ ati_setup(void)
     SET_VGA(VBE_framebuffer, lfb_addr);
     SET_VGA(VBE_total_memory, totalmem);
     SET_VGA(ati_io_addr, io_addr);
+
+    ati_table_setup();
 
     // Validate modes
     struct generic_svga_mode *m = svga_modes;

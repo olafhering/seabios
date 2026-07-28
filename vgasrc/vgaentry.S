@@ -41,7 +41,11 @@ _rom_header_signature:
         .asciz "IBM"
 
 #if CONFIG_VGA_ATI
-#include "ati-tables.S"
+        .org 0x48
+        .global _rom_header_ati_table_anchor
+_rom_header_ati_table_anchor:
+        .word 0
+        .balign 16
 #endif
 
 /****************************************************************
