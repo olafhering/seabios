@@ -15,6 +15,9 @@
 
 #include "svgamodes.h"
 
+#define CONNECTOR_DVI_I_LEGACY 0x3
+#define DDC_DVI 0x2
+
 #define MM_INDEX                                0x0000
 #define MM_DATA                                 0x0004
 #define CRTC_GEN_CNTL                           0x0050
@@ -390,7 +393,7 @@ static struct ati_pll_table_s ati_pll_table VAR16 __aligned(16) = {
 static struct ati_connector_table_s ati_connector_table VAR16 __aligned(16) = {
     .num_chip = 0x10,
     .num_connector = 1,
-    .flags = 0x3000,
+    .flags = (CONNECTOR_DVI_I_LEGACY << 12) | (DDC_DVI << 8)
 };
 
 static void
