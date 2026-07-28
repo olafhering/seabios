@@ -347,7 +347,9 @@ static void ati_i2c_edid_rage128(void)
 // radeonfb needs the pll information, otherwise it'll crash with a
 // division by zero ...
 struct ati_main_table_s {
-    u8 pad_0[48];
+    u8 pad_0[6];
+    u8 size;
+    u8 pad_7[41];
     u16 pll_table;
     u8 pad_50[30];
     u16 connector_table;
@@ -374,7 +376,9 @@ struct ati_connector_table_s {
 } PACKED;
 
 extern u16 _rom_header_ati_table_anchor;
-static struct ati_main_table_s ati_main_table VAR16 __aligned(16);
+static struct ati_main_table_s ati_main_table VAR16 __aligned(16) = {
+    .size = sizeof(struct ati_main_table_s),
+};
 static struct ati_pll_table_s ati_pll_table VAR16 __aligned(16) = {
     .sclk = 23000,
     .mclk = 23000,
